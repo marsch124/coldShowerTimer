@@ -68,6 +68,20 @@ def render(size, ss, rounded, snow_scale):
     segs = snowflake_segments(cx, cy, S * 0.5 * snow_scale)
     snow_reach = S * 0.5 * snow_scale + glow_w + core_w
 
+    # --- stopwatch-style timer dial around the snowflake ---
+    ring_r = S * (0.40 if rounded else 0.345)   # ring radius
+    ring_hw = S * 0.019                          # ring stroke half-width
+    ring_feather = S * 0.008
+    arc_sweep = 0.72                             # fraction of ring "filled"
+    cap0 = (cx, cy - ring_r)                     # arc start (12 o'clock)
+    end_ang = -math.pi / 2 + arc_sweep * 2 * math.pi
+    cape = (cx + math.cos(end_ang) * ring_r, cy + math.sin(end_ang) * ring_r)
+    crown_a = (cx, cy - ring_r - ring_hw * 0.3)  # stopwatch button (stem)
+    crown_b = (cx, cy - ring_r - S * 0.055)
+    crown_hw = S * 0.021
+    ARC = (150, 236, 255)
+    TRACK = (255, 255, 255)
+
     for y in range(S):
         ty = y / (S - 1)
         base = lerp(TOP, BOT, ty)
@@ -93,6 +107,28 @@ def render(size, ss, rounded, snow_scale):
                 if a_glow > 0:
                     for i in range(3):
                         col[i] = min(255, col[i] + CYAN[i] * a_glow)
+
+            # timer dial: track ring + progress arc + rounded caps + crown
+            dcx, dcy = x - cx, y - cy
+            dc = math.hypot(dcx, dcy)
+            rd = abs(dc - ring_r)
+            if rd < ring_hw + ring_feather:
+                a_ring = 1.0 - smoothstep(ring_hw, ring_hw + ring_feather, rd)
+                if a_ring > 0:
+                    col = list(lerp(col, TRACK, a_ring * 0.16))   # faint full track
+                    frac = ((math.atan2(dcy, dcx) + math.pi / 2) % (2 * math.pi)) / (2 * math.pi)
+                    if frac <= arc_sweep:
+                        col = list(lerp(col, ARC, a_ring))          # bright progress
+            dca = math.hypot(x - cap0[0], y - cap0[1])
+            if dca < ring_hw + ring_feather:
+                col = list(lerp(col, ARC, 1.0 - smoothstep(ring_hw, ring_hw + ring_feather, dca)))
+            dce = math.hypot(x - cape[0], y - cape[1])
+            if dce < ring_hw + ring_feather:
+                col = list(lerp(col, ARC, 1.0 - smoothstep(ring_hw, ring_hw + ring_feather, dce)))
+            if abs(dcx) < crown_hw + 2 and crown_b[1] - 2 < y < cy - ring_r + crown_hw + 2:
+                dcr = dist_to_segment(x, y, crown_a[0], crown_a[1], crown_b[0], crown_b[1])
+                if dcr < crown_hw + ring_feather:
+                    col = list(lerp(col, ARC, 1.0 - smoothstep(crown_hw, crown_hw + ring_feather, dcr)))
 
             # rounded-corner alpha mask
             alpha = 255
@@ -147,10 +183,10 @@ def write_png(path, rgba, size):
 
 if __name__ == "__main__":
     for size, ss, rounded, scale, name in [
-        (512, 3, True,  0.62, "icon-512.png"),
-        (192, 3, True,  0.62, "icon-192.png"),
-        (180, 3, True,  0.62, "icon-180.png"),
-        (512, 3, False, 0.50, "icon-512-maskable.png"),
+        (512, 3, True,  0.50, "icon-512.png"),
+        (192, 3, True,  0.50, "icon-192.png"),
+        (180, 3, True,  0.50, "icon-180.png"),
+        (512, 3, False, 0.42, "icon-512-maskable.png"),
     ]:
         print(f"Rendering {name}…")
         rgba, _ = render(size, ss, rounded=rounded, snow_scale=scale)
