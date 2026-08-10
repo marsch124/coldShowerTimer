@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>Cold Shower</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Cold Shower" />
+<meta name="theme-color" content="#04121f" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<style>
+  :root{
+    --bg0:#04121f; --bg1:#0a2740; --bg2:#0e3d5c;
+    --ice:#7fe3ff; --ice-dim:#4bb8dd; --ink:#eaf7ff;
+    --go:#28e07a; --go-deep:#0c5c34;
+    --ring-track:rgba(127,227,255,.14);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(120% 80% at 50% -10%, var(--bg2), transparent 60%),
+      linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 70%);
+    background-attachment:fixed;
+    min-height:100dvh;
+    display:flex; flex-direction:column;
+    padding: max(env(safe-area-inset-top), 14px) 18px max(env(safe-area-inset-bottom), 18px);
+    overflow:hidden;
+    -webkit-user-select:none; user-select:none;
+    transition: background-color .18s ease;
+  }
+  body.flash{ animation: flashbg .5s ease-out 3; }
+  @keyframes flashbg{
+    0%{ background-color:transparent; }
+    30%{ background-color:rgba(40,224,122,.85); }
+    100%{ background-color:transparent; }
+  }
+
+  header{ text-align:center; }
+  h1{ margin:2px 0 0; font-size:15px; letter-spacing:.32em; text-transform:uppercase;
+       font-weight:700; color:var(--ice-dim);}
+  .sub{ margin:4px 0 0; font-size:13px; color:rgba(234,247,255,.45); letter-spacing:.04em;}
+
+  main{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;}
+
+  .dial{ position:relative; width:min(92vw, 400px); aspect-ratio:1/1;
+         animation:breathe 7s ease-in-out infinite; }
+  @keyframes breathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.025); } }
+  .dial svg{ width:100%; height:100%; transform:rotate(-90deg); overflow:visible; }
+  .track{ fill:none; stroke:var(--ring-track); stroke-width:11; }
+  .prog{ fill:none; stroke:var(--ice); stroke-width:11; stroke-linecap:round; }
+  .readout{ position:absolute; inset:0; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; }
+  #time{ font-size:34vw; line-height:.9; font-weight:900; letter-spacing:-.03em;
+         font-variant-numeric:tabular-nums; white-space:nowrap;
+         color:var(--ice); text-shadow:0 0 14px rgba(0,0,0,.35); }
+  @media(min-width:440px){ #time{ font-size:150px; } }
+  #phaseLabel{ margin-top:12px; font-size:15px; letter-spacing:.16em; text-transform:uppercase;
+               font-weight:700; color:var(--ice-dim); min-height:18px;
+               transition:color .25s ease; }
+
+  /* goal picker */
+  .goal{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:2px;}
+  .step{ width:52px; height:52px; border-radius:50%; border:1px solid rgba(127,227,255,.3);
+         background:rgba(127,227,255,.06); color:var(--ice); font-size:26px; font-weight:600;
+         display:flex; align-items:center; justify-content:center; }
+  .step:active{ background:rgba(127,227,255,.2); }
+  .goalval{ min-width:120px; text-align:center; }
+  .goalval .g{ font-size:34px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .goalval .l{ display:block; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+               color:rgba(234,247,255,.4); margin-top:2px;}
+  .presets{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px;}
+  .pill{ padding:8px 15px; border-radius:999px; font-size:15px; font-weight:600;
+         border:1px solid rgba(127,227,255,.25); background:rgba(127,227,255,.05); color:var(--ice);}
+  .pill.active{ background:var(--ice); color:#04121f; border-color:var(--ice); }
+
+  footer{ display:flex; flex-direction:column; gap:12px; align-items:center; }
+  .btn{ width:100%; max-width:420px; height:66px; border:none; border-radius:20px;
+        font-size:22px; font-weight:800; letter-spacing:.02em; color:#04121f;
+        background:linear-gradient(180deg,#a6ecff,#63d0f2); box-shadow:0 8px 30px rgba(99,208,242,.35);}
+  .btn:active{ transform:translateY(1px); }
+  .btn.stop{ background:linear-gradient(180deg,#ff8f9c,#ff5a6e); color:#2a0006;
+             box-shadow:0 8px 30px rgba(255,90,110,.3);}
+  .hide{ display:none !important; }
+
+  /* summary overlay */
+  #overlay{ position:fixed; inset:0; background:rgba(4,18,31,.86); backdrop-filter:blur(6px);
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            gap:14px; padding:28px; text-align:center; }
+  #overlay .big{ font-size:56px; font-weight:800; font-variant-numeric:tabular-nums; }
+  #overlay .msg{ font-size:18px; color:var(--ink); max-width:320px; line-height:1.4;}
+  #overlay .medal{ font-size:60px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Cold Shower</h1>
+    <p class="sub" id="tagline">Set your goal &amp; brace yourself</p>
+  </header>
+
+  <main>
+    <div class="dial">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <filter id="wobble" x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.013 0.017"
+                          numOctaves="2" seed="7" result="n">
+              <animate attributeName="baseFrequency" dur="17s" repeatCount="indefinite"
+                       values="0.013 0.017; 0.017 0.011; 0.010 0.018; 0.013 0.017"/>
+              <animate attributeName="seed" dur="26s" repeatCount="indefinite"
+                       values="7;11;7"/>
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="9"
+                               xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+        </defs>
+        <g filter="url(#wobble)">
+          <circle class="track" cx="100" cy="100" r="86"></circle>
+          <circle class="prog" id="prog" cx="100" cy="100" r="86"></circle>
+        </g>
+      </svg>
+      <div class="readout">
+        <div id="time">2:00</div>
+        <div id="phaseLabel"></div>
+      </div>
+    </div>
+
+    <!-- goal picker (idle only) -->
+    <div id="picker">
+      <div class="goal">
+        <button class="step" id="minus" aria-label="Less time">−</button>
+        <div class="goalval"><span class="g" id="goalText">2:00</span><span class="l">goal</span></div>
+        <button class="step" id="plus" aria-label="More time">+</button>
+      </div>
+      <div class="presets" id="presets"></div>
+    </div>
+  </main>
+
+  <footer>
+    <button class="btn" id="startBtn">Start</button>
+  </footer>
+
+  <div id="overlay" class="hide">
+    <div class="medal" id="medal">🏆</div>
+    <div class="big" id="ovTime">0:00</div>
+    <div class="msg" id="ovMsg"></div>
+    <button class="btn" id="againBtn" style="max-width:280px;">Go again</button>
+  </div>
+
+<script>
+(() => {
+  const R = 86, CIRC = 2 * Math.PI * R;
+  const $ = id => document.getElementById(id);
+  const prog = $('prog');
+  prog.style.strokeDasharray = CIRC;
+
+  const PRESETS = [180, 360, 540];              // 3, 6, 9 minutes
+  const STEP = 60, MIN_GOAL = 60, MAX_GOAL = 1800;  // ±1 minute, up to 30 min
+
+  let goal = parseInt(localStorage.getItem('cst.goal') || '180', 10);
+  let phase = 'idle';           // idle | countdown | bonus
+  let startAt = 0;              // ms timestamp when Start pressed
+  let raf = null;
+  let lastBeepSec = null;       // to fire 3-2-1 beeps once each
+  let audio = null;
+  let wakeLock = null;
+
+  /* ---------- formatting ---------- */
+  const fmt = s => {
+    s = Math.max(0, Math.floor(s));
+    const m = Math.floor(s / 60);
+    return m + ':' + String(s % 60).padStart(2, '0');
+  };
+
+  // Three equal phases across the goal, sized automatically to the duration:
+  //   first third  → blue, middle third → yellow, final third → green.
+  const PHASE_COLORS = ['#3ea6ff', '#ffce33', '#2ce07a'];
+  const colorFor = p => PHASE_COLORS[Math.max(0, Math.min(2, Math.floor(p * 3)))];
+
+  /* ---------- sound (Web Audio, offline, no files) ---------- */
+  function ensureAudio(){
+    if(!audio){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audio = new AC();
+    }
+    if(audio.state === 'suspended') audio.resume();
+  }
+  function tone(freq, when, dur, gain, type){
+    const t0 = audio.currentTime + when;
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g).connect(audio.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  }
+  const beep = () => { if(audio) tone(760, 0, 0.12, 0.25, 'sine'); };
+  function chime(){
+    if(!audio) return;
+    // bright rising triad
+    tone(523.25, 0.00, 0.5, 0.3);
+    tone(659.25, 0.12, 0.5, 0.3);
+    tone(783.99, 0.24, 0.7, 0.34);
+    tone(1046.5, 0.36, 0.8, 0.28);
+  }
+
+  /* ---------- wake lock (keep screen on) ---------- */
+  async function keepAwake(){
+    try{ if('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+  }
+  function releaseAwake(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock = null; }
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible' && phase !== 'idle') keepAwake();
+  });
+
+  /* ---------- rendering ---------- */
+  function setRing(frac, color){
+    frac = Math.max(0, Math.min(1, frac));
+    prog.style.strokeDashoffset = CIRC * (1 - frac);
+    if(color) prog.style.stroke = color;
+  }
+  function renderIdle(){
+    $('goalText').textContent = fmt(goal);
+    $('time').textContent = fmt(goal);
+    $('phaseLabel').textContent = '';
+    $('time').style.color = '';
+    setRing(1, 'var(--ice)');
+    document.querySelectorAll('.pill').forEach(p =>
+      p.classList.toggle('active', +p.dataset.s === goal));
+  }
+
+  function buildPresets(){
+    const wrap = $('presets'); wrap.innerHTML = '';
+    PRESETS.forEach(s => {
+      const b = document.createElement('button');
+      b.className = 'pill'; b.dataset.s = s; b.textContent = fmt(s);
+      b.onclick = () => { goal = s; localStorage.setItem('cst.goal', goal); renderIdle(); };
+      wrap.appendChild(b);
+    });
+  }
+
+  /* ---------- main loop ---------- */
+  function tick(){
+    const elapsed = (Date.now() - startAt) / 1000;
+    if(phase === 'countdown'){
+      const remaining = goal - elapsed;
+      // 3-2-1 beeps
+      const rc = Math.ceil(remaining);
+      if(rc <= 3 && rc >= 1 && rc !== lastBeepSec){ lastBeepSec = rc; beep(); }
+      if(remaining <= 0){ reachGoal(); }
+      else{
+        const p = 1 - remaining / goal;      // 0 at start → 1 at goal
+        const col = colorFor(p);
+        $('time').textContent = fmt(remaining);
+        $('time').style.color = col;
+        $('phaseLabel').textContent = 'remaining';
+        setRing(remaining / goal, col);
+      }
+    }
+    if(phase === 'bonus'){
+      const bonus = elapsed - goal;
+      $('time').textContent = '+' + fmt(bonus);
+      $('phaseLabel').textContent = 'bonus · keep going';
+      setRing(1, 'var(--go)');
+    }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function reachGoal(){
+    phase = 'bonus';
+    lastBeepSec = null;
+    chime();
+    document.body.classList.remove('flash'); void document.body.offsetWidth;
+    document.body.classList.add('flash');
+    $('time').style.color = 'var(--go)';
+    setRing(1, 'var(--go)');
+    if(navigator.vibrate) navigator.vibrate([120,60,120,60,220]);
+  }
+
+  /* ---------- controls ---------- */
+  function start(){
+    ensureAudio(); keepAwake();
+    phase = 'countdown'; startAt = Date.now(); lastBeepSec = null;
+    $('picker').classList.add('hide');
+    $('tagline').textContent = 'Breathe slow. You’ve got this.';
+    const b = $('startBtn'); b.textContent = 'Stop'; b.classList.add('stop');
+    b.onclick = stop;
+    document.body.classList.remove('flash');
+    raf = requestAnimationFrame(tick);
+  }
+
+  function stop(){
+    cancelAnimationFrame(raf); raf = null;
+    releaseAwake();
+    const elapsed = (Date.now() - startAt) / 1000;
+    const reached = elapsed >= goal;
+    showSummary(elapsed, reached);
+    resetToIdleUI();
+  }
+
+  function resetToIdleUI(){
+    phase = 'idle';
+    document.body.classList.remove('flash');
+    $('picker').classList.remove('hide');
+    $('tagline').textContent = 'Set your goal & brace yourself';
+    const b = $('startBtn'); b.textContent = 'Start'; b.classList.remove('stop');
+    b.onclick = start;
+    renderIdle();
+  }
+
+  function showSummary(elapsed, reached){
+    const bonus = Math.max(0, elapsed - goal);
+    $('ovTime').textContent = fmt(elapsed);
+    if(reached){
+      $('medal').textContent = bonus >= 30 ? '🥶🔥' : '🏆';
+      $('ovMsg').innerHTML = bonus >= 1
+        ? `You smashed your <b>${fmt(goal)}</b> goal by <b>${fmt(bonus)}</b>. Ice legend.`
+        : `You hit your <b>${fmt(goal)}</b> goal right on the mark. 💪`;
+    } else {
+      const short = goal - elapsed;
+      $('medal').textContent = '❄️';
+      $('ovMsg').innerHTML = `Good effort — <b>${fmt(short)}</b> short of your ${fmt(goal)} goal. Next time.`;
+    }
+    $('overlay').classList.remove('hide');
+  }
+
+  /* ---------- wire up ---------- */
+  $('minus').onclick = () => { goal = Math.max(MIN_GOAL, goal - STEP); localStorage.setItem('cst.goal', goal); renderIdle(); };
+  $('plus').onclick  = () => { goal = Math.min(MAX_GOAL, goal + STEP); localStorage.setItem('cst.goal', goal); renderIdle(); };
+  $('startBtn').onclick = start;
+  $('againBtn').onclick = () => { $('overlay').classList.add('hide'); };
+
+  buildPresets();
+
+  // Any tap wakes up the sound engine (iOS blocks audio until a gesture),
+  // so even an auto-started session gets its chime back after one touch.
+  const unlockAudio = () => { if(audio && audio.state === 'suspended') audio.resume(); };
+  document.addEventListener('pointerdown', unlockAudio);
+  document.addEventListener('touchstart', unlockAudio, { passive: true });
+
+  // ---- Launch via Apple Shortcuts / links ----
+  //  ?goal=6   → set the goal to 6 minutes (and remember it)
+  //  ?start    → begin immediately using the (last-)selected goal
+  //  e.g. Shortcut "Open URL":  https://…/ColdShowerTimer/?start
+  const params = new URLSearchParams(location.search);
+  if(params.has('goal')){
+    const m = parseFloat(params.get('goal'));
+    if(!isNaN(m)){
+      goal = Math.max(MIN_GOAL, Math.min(MAX_GOAL, Math.round(m) * 60));
+      localStorage.setItem('cst.goal', goal);
+    }
+  }
+  renderIdle();
+  if(params.has('start') || params.has('go') || params.has('autostart')){
+    start();
+  }
+
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>

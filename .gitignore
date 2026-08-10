@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+.AppleDouble
+Icon?
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Python (icon generator)
+__pycache__/
+*.pyc
+
+# Local preview server config (kept out of the public repo)
+.claude/
+
+# Scratch
+/tmp/
+*.log
