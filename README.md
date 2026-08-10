@@ -8,12 +8,18 @@ Home Screen with its own icon — no App Store, no installs, nothing to expire.
 
 ## What it does
 
-- **Counts down to your goal** (pick from presets or nudge ±15 s).
+- **Counts down to your goal** (3 / 6 / 9 min presets, or nudge ±1 min).
+- **Three colour-coded phases** — the timer runs blue → yellow → green across
+  equal thirds of your goal, so a glance tells you which phase you're in.
 - **Chime + a big green screen flash** the instant you hit your goal, with soft
   3-2-1 beeps just before.
 - **Keeps going** — after the goal it counts up your bonus time.
+- **Multiple profiles** — add a name per person; each keeps their own goal and
+  their own history (all stored locally on the device, no account needed).
+- **Statistics** — sessions, total time, longest, goal-hit rate, day-streak and
+  average, plus three chart views (recent sessions, a calendar heatmap, and
+  weekly totals) and a recent-session history.
 - **Keeps the screen awake** during a session so it won't sleep mid-shower.
-- **Remembers your last goal** and a friendly summary when you stop.
 - **Works fully offline** once added to the Home Screen.
 
 ## Use it on your iPhone
