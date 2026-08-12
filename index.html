@@ -176,7 +176,14 @@
   /* adjust sessions */
   .histrow{ display:flex; align-items:center; justify-content:space-between; }
   .linkbtn.adjbtn{ font-size:14px; padding:2px 4px; letter-spacing:0; text-transform:none; }
-  .hrow .del{ color:#ff8f9c; border-color:rgba(255,143,156,.4); flex:0 0 auto; }
+  .hrow .del{ flex:0 0 auto; width:40px; height:40px; padding:0; border:none;
+              border-radius:50% 48% 52% 50% / 52% 50% 50% 48%;   /* soft, slightly organic blob */
+              display:flex; align-items:center; justify-content:center;
+              background:radial-gradient(120% 120% at 30% 25%, #ff9aa6, #ff5a6e 70%);
+              box-shadow:0 5px 16px rgba(255,90,110,.45), inset 0 1px 1px rgba(255,255,255,.35); }
+  .hrow .del svg{ width:19px; height:19px; display:block; }
+  .hrow .del:active{ transform:translateY(1px) scale(.94);
+                     box-shadow:0 3px 10px rgba(255,90,110,.4); }
   .fld{ display:flex; flex-direction:column; gap:6px; font-size:13px;
         letter-spacing:.02em; color:rgba(234,247,255,.6); }
   .fld > input{ padding:12px; border-radius:12px; border:1px solid var(--line);
@@ -836,7 +843,13 @@
                    ' · ' + d.toLocaleTimeString(undefined,{ hour:'numeric', minute:'2-digit' });
       const badge = x.reached ? `<span class="badge hit">✓ ${fmt(x.goal)}${x.bonus? ' +'+fmt(x.bonus):''}</span>`
                               : `<span class="badge miss">${fmt(x.goal)} goal</span>`;
-      const del = adjustMode ? `<button class="mini del" data-t="${x.t}" title="Delete">🗑</button>` : '';
+      const del = adjustMode ? `<button class="del" data-t="${x.t}" aria-label="Delete session" title="Delete">`+
+        `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">`+
+        `<path d="M4.5 6.8h15" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/>`+
+        `<path d="M9.6 6.6l.4-1.5a1.6 1.6 0 0 1 1.5-1.1h1a1.6 1.6 0 0 1 1.5 1.1l.4 1.5" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>`+
+        `<path d="M6.6 6.8l.9 11.3a2.1 2.1 0 0 0 2.1 1.9h4.8a2.1 2.1 0 0 0 2.1-1.9l.9-11.3" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>`+
+        `<path d="M10.2 10.6v5.4M13.8 10.6v5.4" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/>`+
+        `</svg></button>` : '';
       return `<div class="hrow"><span class="dur">${fmt(x.dur)}</span><span class="meta">${when}</span>${badge}${del}</div>`;
     }).join('');
   }
@@ -984,6 +997,9 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.6', date: '2026-08-12 10:48', title: 'Friendlier delete button',
+      what: 'Restyled the delete button in Stats → Adjust as a soft, rounded coral button with a clean trash icon.',
+      benefit: 'It stands out clearly as the “remove” action and feels less harsh than the old plain icon.' },
     { v: 'v1.5', date: '2026-08-12 10:30', title: 'Test timer, editable stats & fresh Settings icon',
       what: 'Added a 30-second test timer in Settings; an “Adjust” tool on the stats screen to add showers you forgot to time or delete ones logged by mistake; a redesigned Settings gear icon; and expanded the in-app “How this works” guide to cover every feature.',
       benefit: 'Preview changes in seconds, keep your history accurate, and find a plain-English explanation for everything the app does — all without leaving it.' },
