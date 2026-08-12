@@ -243,6 +243,17 @@
   .btn.ghost.ok{ border-color:var(--go); color:var(--go); }
   .setnote{ font-size:12px; color:rgba(234,247,255,.45); margin-top:10px; text-align:center; }
 
+  /* on/off toggle switch */
+  .togg{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .togg + .togg{ margin-top:16px; }
+  .togg > span{ font-size:15px; color:var(--ink); }
+  .tsw{ width:52px; height:31px; border-radius:999px; border:1px solid var(--line); flex:0 0 auto;
+        background:rgba(0,0,0,.25); position:relative; transition:background .2s ease, border-color .2s ease; }
+  .tsw::after{ content:""; position:absolute; top:2px; left:2px; width:25px; height:25px; border-radius:50%;
+               background:#eaf7ff; transition:transform .2s ease, background .2s ease; }
+  .tsw[aria-checked="true"]{ background:var(--ice); border-color:var(--ice); }
+  .tsw[aria-checked="true"]::after{ transform:translateX(21px); background:#04121f; }
+
   /* collapsible "how this works" */
   .acc{ background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
   .acc + .acc{ margin-top:10px; }
@@ -446,18 +457,33 @@
         <button class="btn mini2 full" id="testBtn">Start 30-second test</button>
       </div>
 
+      <div class="seclabel">Timer cues</div>
+      <div class="setcard">
+        <div class="togg">
+          <span>Get-ready 3·2·1 lead-in</span>
+          <button class="tsw" id="leadInToggle" role="switch" aria-checked="true" aria-label="Toggle get-ready lead-in"></button>
+        </div>
+        <div class="togg">
+          <span>Phase chimes</span>
+          <button class="tsw" id="phaseCueToggle" role="switch" aria-checked="true" aria-label="Toggle phase chimes"></button>
+        </div>
+        <p style="margin-top:16px;">The <b>lead-in</b> counts you in with 3·2·1 so you can step into the cold before timing starts — tap the dial to skip it. <b>Phase chimes</b> play a soft, rising tone as you cross into the yellow and green thirds, so you can track your progress by ear. Preview both with the test timer above.</p>
+      </div>
+
       <div class="seclabel">How this works</div>
       <details class="acc">
         <summary>Getting started <span class="chev">›</span></summary>
         <div class="accbody">
           <p><b>Pick a goal</b> with the 3 / 6 / 9-minute presets, or nudge it ±1 minute with the − / + buttons.</p>
-          <p><b>Tap Start</b>, step into the cold, and let the ring count you down. Tap <b>Stop</b> anytime to end and save the session.</p>
+          <p><b>Tap Start</b> and a quick <b>3·2·1 lead-in</b> counts you in, giving you a moment to step into the cold before timing begins. Tap the dial to skip it, or switch it off under <b>Settings → Timer cues</b>.</p>
+          <p>Let the ring count you down. Tap <b>Stop</b> anytime to end and save the session.</p>
         </div>
       </details>
       <details class="acc">
         <summary>The countdown, colours &amp; finish <span class="chev">›</span></summary>
         <div class="accbody">
           <p>The timer runs through <b>three colour-coded phases</b> across equal thirds of your goal: <b>blue → yellow → green</b>. A glance tells you how far you've come.</p>
+          <p>As you cross into the yellow and green thirds, a <b>soft rising chime</b> marks each boundary — so you can track your progress by ear without looking. Turn these <b>phase chimes</b> off under <b>Settings → Timer cues</b> if you prefer silence.</p>
           <p>You'll hear soft <b>3-2-1 beeps</b> just before the finish, then a <b>chime and a big green screen flash</b> the instant you hit your goal.</p>
           <p>When you reach your goal the <b>whole background turns green and stays green</b> for the rest of the session — so you can tell you've made it at a glance, even from across the shower with water running.</p>
           <p>After the goal it flips to a <b>bonus count-up</b>, so you can push past your target and bank extra seconds.</p>
@@ -525,9 +551,9 @@
   const PRESETS = [180, 360, 540];                   // 3, 6, 9 minutes
   const STEP = 60, MIN_GOAL = 60, MAX_GOAL = 1800;   // ±1 min, up to 30 min
 
-  let phase = 'idle';           // idle | countdown | bonus
-  let startAt = 0;
-  let raf = null, lastBeepSec = null;
+  let phase = 'idle';           // idle | ready | countdown | bonus
+  let startAt = 0, readyStart = 0;
+  let raf = null, lastBeepSec = null, lastLeadNum = null, lastCueIdx = 0;
   let audio = null, wakeLock = null;
   let testMode = false;         // 30-second test run — not saved to stats
 
@@ -578,6 +604,13 @@
   const PHASE_COLORS = ['#3ea6ff', '#ffce33', '#2ce07a'];  // blue → yellow → green thirds
   const colorFor = p => PHASE_COLORS[Math.max(0, Math.min(2, Math.floor(p * 3)))];
 
+  /* ---- timer-cue preferences (device-wide, default on) ---- */
+  const prefOn = (k, def) => (LS.getItem(k) ?? (def ? '1' : '0')) === '1';
+  const leadInOn = () => prefOn('cst.leadIn', true);
+  const phaseCueOn = () => prefOn('cst.phaseCue', true);
+  const setToggle = (el, on) => { if(el) el.setAttribute('aria-checked', on ? 'true' : 'false'); };
+  function syncToggles(){ setToggle($('leadInToggle'), leadInOn()); setToggle($('phaseCueToggle'), phaseCueOn()); }
+
   /* ---------- sound ---------- */
   function ensureAudio(){
     if(!audio){ const AC = window.AudioContext || window.webkitAudioContext; audio = new AC(); }
@@ -594,6 +627,11 @@
     osc.start(t0); osc.stop(t0 + dur + 0.02);
   }
   const beep = () => { if(audio) tone(760, 0, 0.12, 0.25, 'sine'); };
+  const goBeep = () => { if(audio) tone(988, 0, 0.20, 0.28, 'sine'); };   // brighter "go!"
+  function phaseTone(idx){                          // soft, rising cue at ⅓ and ⅔
+    if(!audio) return;
+    tone(idx === 1 ? 523.25 : 659.25, 0, 0.35, 0.16, 'sine');
+  }
   function chime(){
     if(!audio) return;
     tone(523.25,0,0.5,0.3); tone(659.25,0.12,0.5,0.3);
@@ -631,7 +669,29 @@
     });
   }
 
+  const LEAD = 3;                                   // get-ready 3·2·1 seconds
   function tick(){
+    if(phase === 'ready'){
+      const t = (Date.now() - readyStart) / 1000;
+      if(t < LEAD){                                 // 3 · 2 · 1
+        const n = Math.ceil(LEAD - t);
+        if(n !== lastLeadNum){ lastLeadNum = n; beep(); }
+        $('time').textContent = n;
+        $('time').style.color = 'var(--ice)';
+        $('phaseLabel').textContent = 'get ready';
+        setRing(1, 'var(--ice)');
+      } else if(t < LEAD + 0.55){                   // brief "GO"
+        if(lastLeadNum !== 0){ lastLeadNum = 0; goBeep(); }
+        $('time').textContent = 'GO';
+        $('time').style.color = 'var(--go)';
+        $('phaseLabel').textContent = '';
+        setRing(1, 'var(--go)');
+      } else {
+        beginCountdown();
+      }
+      raf = requestAnimationFrame(tick);
+      return;
+    }
     const elapsed = (Date.now() - startAt) / 1000;
     if(phase === 'countdown'){
       const remaining = goal - elapsed;
@@ -639,7 +699,11 @@
       if(rc <= 3 && rc >= 1 && rc !== lastBeepSec){ lastBeepSec = rc; beep(); }
       if(remaining <= 0){ reachGoal(); }
       else{
-        const col = colorFor(1 - remaining/goal);
+        const frac = 1 - remaining/goal;
+        const idx = Math.min(2, Math.floor(frac * 3));   // 0 blue · 1 yellow · 2 green
+        if(phaseCueOn() && idx > lastCueIdx){ phaseTone(idx); }
+        lastCueIdx = idx;
+        const col = colorFor(frac);
         $('time').textContent = fmt(remaining);
         $('time').style.color = col;
         $('phaseLabel').textContent = 'remaining';
@@ -666,18 +730,32 @@
   /* ---------- controls ---------- */
   function start(){
     ensureAudio(); keepAwake();
-    phase = 'countdown'; startAt = Date.now(); lastBeepSec = null;
+    lastBeepSec = null; lastCueIdx = 0;
     $('picker').classList.add('hide');
     $('topbar').classList.add('hide');
     $('backupNudge').classList.add('hide');
-    $('tagline').textContent = 'Breathe slow. You’ve got this.';
     const b = $('startBtn'); b.textContent = 'Stop'; b.classList.add('stop'); b.onclick = stop;
     document.body.classList.remove('flash', 'done');
     document.documentElement.classList.remove('done');
+    if(leadInOn()){
+      phase = 'ready'; readyStart = Date.now(); lastLeadNum = null;
+      $('tagline').textContent = 'Get set…';
+    } else {
+      beginCountdown();
+    }
     raf = requestAnimationFrame(tick);
+  }
+  function beginCountdown(){
+    phase = 'countdown'; startAt = Date.now(); lastBeepSec = null; lastCueIdx = 0;
+    $('tagline').textContent = 'Breathe slow. You’ve got this.';
+  }
+  function skipLeadIn(){                             // tap the dial to skip the 3·2·1
+    if(phase !== 'ready') return;
+    goBeep(); beginCountdown();
   }
   function stop(){
     cancelAnimationFrame(raf); raf = null; releaseAwake();
+    if(phase === 'ready'){ resetToIdleUI(); return; }   // aborted before timing began
     const elapsed = (Date.now() - startAt) / 1000;
     const reached = elapsed >= goal;
     saveSession(elapsed, reached);
@@ -1066,6 +1144,9 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.12', date: '2026-08-12 12:00', title: 'Get-ready lead-in & phase chimes',
+      what: 'Tapping Start now runs a quick 3·2·1 lead-in (tap the dial to skip) so you can step in before timing begins. And as you cross into the yellow and green thirds, a soft rising chime marks each boundary. Both can be toggled under the new Settings → Timer cues.',
+      benefit: 'No more fumbling as the clock starts, and you can feel your progress through the phases by ear — no need to watch the screen with water running.' },
     { v: 'v1.11', date: '2026-08-12 11:45', title: 'Monthly backup reminder',
       what: 'A slim reminder now appears on the home screen if it’s been over a month since you last backed up (and you’ve built up at least a few sessions). Tap Back up to open your data options, or dismiss it to snooze for a week — any export, copy or restore resets it.',
       benefit: 'Your streaks and history are far less likely to be lost to a forgotten backup, without the app ever nagging you.' },
@@ -1115,7 +1196,7 @@
          <p class="vben"><b>Why it helps:</b> ${e.benefit}</p>
        </div>`).join('');
   }
-  function openSettings(){ renderVersionLog(); $('settings').classList.remove('hide'); }
+  function openSettings(){ renderVersionLog(); syncToggles(); $('settings').classList.remove('hide'); }
   function closeSettings(){ $('settings').classList.add('hide'); }
 
   /* ============ wire up ============ */
@@ -1150,6 +1231,9 @@
   $('copyBtn').onclick = e => copyData(e.currentTarget);
   $('backupNow').onclick = openSettings;
   $('backupDismiss').onclick = () => { LS.setItem('cst.backupSnooze', String(Date.now())); maybeShowBackupNudge(); };
+  $('leadInToggle').onclick = () => { LS.setItem('cst.leadIn', leadInOn() ? '0' : '1'); syncToggles(); };
+  $('phaseCueToggle').onclick = () => { LS.setItem('cst.phaseCue', phaseCueOn() ? '0' : '1'); syncToggles(); };
+  document.querySelector('.dial').addEventListener('click', skipLeadIn);
   $('importBtn').onclick = () => $('importFile').click();
   $('importFile').addEventListener('change', e => {
     const f = e.target.files && e.target.files[0];
