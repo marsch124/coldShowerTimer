@@ -1,5 +1,5 @@
 /* Cold Shower Timer — offline service worker */
-const CACHE = 'cold-shower-v5';
+const CACHE = 'cold-shower-v6';
 const ASSETS = [
   './',
   './index.html',

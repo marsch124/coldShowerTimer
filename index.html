@@ -40,6 +40,17 @@
     30%{ background-color:rgba(44,224,122,.85); }
     100%{ background-color:transparent; }
   }
+  /* persistent "you made it" green wash — fades in the instant the goal is
+     reached and stays for the whole bonus count-up. Sits above the dark base
+     background but behind all the text (z-index:-1). */
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #1c7a49, transparent 60%),
+      linear-gradient(180deg, #0d552f 0%, #04240f 70%);
+    opacity:0; transition:opacity .55s ease;
+  }
+  body.done::after{ opacity:1; }
 
   /* top bar */
   .topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -517,6 +528,7 @@
   }
   function reachGoal(){
     phase = 'bonus'; lastBeepSec = null; chime();
+    document.body.classList.add('done');            // persistent green background
     document.body.classList.remove('flash'); void document.body.offsetWidth;
     document.body.classList.add('flash');
     $('time').style.color = 'var(--go)'; setRing(1, 'var(--go)');
@@ -531,7 +543,7 @@
     $('topbar').classList.add('hide');
     $('tagline').textContent = 'Breathe slow. You’ve got this.';
     const b = $('startBtn'); b.textContent = 'Stop'; b.classList.add('stop'); b.onclick = stop;
-    document.body.classList.remove('flash');
+    document.body.classList.remove('flash', 'done');
     raf = requestAnimationFrame(tick);
   }
   function stop(){
@@ -544,7 +556,7 @@
   }
   function resetToIdleUI(){
     phase = 'idle';
-    document.body.classList.remove('flash');
+    document.body.classList.remove('flash', 'done');
     $('picker').classList.remove('hide');
     $('topbar').classList.remove('hide');
     $('tagline').textContent = 'Set your goal & brace yourself';
@@ -849,6 +861,9 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.4', date: '2026-08-12 10:15', title: 'Green “you made it” background',
+      what: 'The whole screen now turns a calm green the instant you reach your goal, and stays green through the bonus count-up — on top of the existing chime and flash.',
+      benefit: 'One glance from across the shower tells you you’ve hit your target, even if you missed the chime over running water.' },
     { v: 'v1.3', date: '2026-08-12 07:20', title: 'Settings page',
       what: 'Added this Settings screen: a one-tap data backup (export & restore), a “How this works” guide, and this version log.',
       benefit: 'Your sessions are no longer trapped on one device — back them up or move them to a new phone — and there’s an in-app explainer for every feature.' },
