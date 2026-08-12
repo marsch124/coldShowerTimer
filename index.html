@@ -23,16 +23,20 @@
   /* Paint the full screen on <html> too — including the iOS home-indicator
      safe-area at the very bottom — so no white strip shows through there. */
   html{
+    /* solid colour FIRST via longhand so the shorthand can't wipe it out — it
+       fills the whole canvas incl. the iOS home-indicator safe-area even if the
+       gradient images don't paint there. The gradients sit on top for depth. */
     background-color:var(--bg0);
-    background:
+    background-image:
       radial-gradient(120% 80% at 50% -10%, var(--bg2), transparent 60%),
       linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 70%);
-    background-attachment:fixed;
+    background-repeat:no-repeat;
+    background-size:cover;
     transition:background-color .55s ease;
   }
   html.done{
-    background-color:#05381c;
-    background:
+    background-color:#0a5c31;
+    background-image:
       radial-gradient(125% 85% at 50% -8%, #2fd06f, transparent 62%),
       linear-gradient(180deg, #0e7c40 0%, #05381c 72%);
   }
@@ -1022,9 +1026,12 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.9', date: '2026-08-12 11:15', title: 'No more white strip at the bottom',
+      what: 'Fixed the pale strip that could show along the very bottom edge on iPhone (the home-indicator area) by painting a solid background colour across the whole screen behind everything.',
+      benefit: 'The app now looks clean edge-to-edge in both the dark idle screen and the green finish — no white gap at the bottom.' },
     { v: 'v1.8', date: '2026-08-12 11:05', title: 'Punchier green finish & tidier bonus',
-      what: 'The “you made it” background is now a brighter, more vivid green that fills the whole screen — including the very bottom edge on iPhone, where a white strip used to peek through. The bonus “+” count-up is also sized down slightly so it sits neatly inside the ring.',
-      benefit: 'The goal-reached moment pops more and looks clean edge-to-edge, and the bonus timer no longer crowds the circle.' },
+      what: 'The “you made it” background is now a brighter, more vivid green that fills the whole screen. The bonus “+” count-up is also sized down slightly so it sits neatly inside the ring.',
+      benefit: 'The goal-reached moment pops more, and the bonus timer no longer crowds the circle.' },
     { v: 'v1.7', date: '2026-08-12 11:00', title: 'Version shown on the main page',
       what: 'A small version number now sits just under the tagline on the home screen.',
       benefit: 'You can tell at a glance which release you’re running — handy after an update to confirm the new version has loaded.' },
