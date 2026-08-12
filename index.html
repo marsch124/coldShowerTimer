@@ -1196,6 +1196,9 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.14', date: '2026-08-12 20:00', title: 'Updates now arrive reliably, for real this time',
+      what: 'A deeper fix to the update check first attempted in v1.10: the piece of code that looks for a new version was itself being cached by the phone, so it could keep re-checking against an old copy of itself and never notice an update existed. The check now stamps its own request with the current version number, forcing a genuinely fresh look every time.',
+      benefit: 'A normal quit-and-reopen after publishing is now enough to get the newest version — no more repeated force-quitting or wondering if an update actually landed.' },
     { v: 'v1.13', date: '2026-08-12 12:15', title: 'Personal-best celebration',
       what: 'Beat your longest-ever shower and the finish screen now celebrates it — a gold “New personal best!” badge, a special medal with a little pop, a warm gold glow and a brighter chime. Every record-setting session is also flagged with a 🏅 in your history.',
       benefit: 'Pushing past your record feels genuinely rewarding, giving you a reason to go a little longer each time.' },
@@ -1324,7 +1327,7 @@
   maybeShowBackupNudge();
   if(params.has('start') || params.has('go') || params.has('autostart')) start();
 
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js?v=' + VERSIONLOG[0].v).catch(()=>{});
 })();
 </script>
 </body>
