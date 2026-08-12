@@ -1,5 +1,5 @@
 /* Cold Shower Timer — offline service worker */
-const CACHE = 'cold-shower-v11';
+const CACHE = 'cold-shower-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -33,7 +33,9 @@ self.addEventListener('fetch', (e) => {
 
   if (isPage) {
     e.respondWith(
-      fetch(e.request).then((res) => {
+      // `cache: 'no-store'` bypasses the browser's HTTP cache so a fresh push
+      // shows up immediately instead of waiting out GitHub Pages' ~10-min TTL.
+      fetch(e.request, { cache: 'no-store' }).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put('./index.html', copy)).catch(() => {});
         return res;

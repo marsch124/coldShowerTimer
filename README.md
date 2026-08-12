@@ -25,6 +25,28 @@ Home Screen with its own icon — no App Store, no installs, nothing to expire.
   device), a collapsible "How this works" guide, and a dated version log of what
   changed and why.
 
+## Version history
+
+The full, dated log lives inside the app (**Settings → Version log**). Recent
+highlights:
+
+- **v1.10** — Fresh updates arrive faster: the app now fetches itself with the
+  browser cache bypassed, so a newly published version shows up right after you
+  close and reopen it.
+- **v1.9** — Fixed the pale strip that could show along the very bottom edge on
+  iPhone (the home-indicator area) by painting a solid background colour across
+  the whole screen behind everything.
+- **v1.8** — Punchier green finish (brighter, more vivid "you made it" wash) and
+  a slightly smaller bonus "+" count-up so it sits neatly inside the ring.
+- **v1.7** — Version number now shown under the tagline on the home screen.
+- **v1.6** — Friendlier, rounded coral delete button in Stats → Adjust.
+- **v1.5** — 30-second test timer, an "Adjust" tool to add/delete past sessions,
+  a redesigned Settings gear icon, and an expanded "How this works" guide.
+- **v1.4** — Green "you made it" background that stays green through the bonus.
+- **v1.3** — Settings page: data backup/restore, guide, and version log.
+- **v1.2** — Multiple profiles and a full statistics screen.
+- **v1.0** — Installable, fully-offline PWA with Home Screen icons.
+
 ## Use it on your iPhone
 
 1. Open the app's web address in **Safari**.
