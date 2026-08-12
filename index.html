@@ -161,6 +161,46 @@
   .hrow .badge{ font-size:12px; font-weight:800; padding:4px 9px; border-radius:999px; }
   .badge.hit{ background:rgba(44,224,122,.16); color:var(--go); }
   .badge.miss{ background:rgba(127,227,255,.12); color:var(--ice); }
+
+  /* settings */
+  .setgroup{ display:flex; gap:8px; align-items:center; }
+  .seclabel{ font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:rgba(234,247,255,.5);
+             margin:22px 0 10px; font-weight:700; }
+  .seclabel:first-child{ margin-top:6px; }
+  .setcard{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .setcard + .setcard{ margin-top:10px; }
+  .setcard p{ margin:0; font-size:14px; line-height:1.5; color:rgba(234,247,255,.72); }
+  .setcard p + p{ margin-top:10px; }
+  .setcard .full{ width:100%; height:52px; margin-top:14px; }
+  .btn.mini2{ height:46px; font-size:16px; border-radius:14px; }
+  .btn.ghost.ok{ border-color:var(--go); color:var(--go); }
+  .setnote{ font-size:12px; color:rgba(234,247,255,.45); margin-top:10px; text-align:center; }
+
+  /* collapsible "how this works" */
+  .acc{ background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .acc + .acc{ margin-top:10px; }
+  .acc > summary{ list-style:none; cursor:pointer; padding:16px; display:flex; align-items:center;
+                  justify-content:space-between; gap:12px; font-size:16px; font-weight:700; color:var(--ink); }
+  .acc > summary::-webkit-details-marker{ display:none; }
+  .acc > summary .chev{ color:var(--ice-dim); font-size:14px; transition:transform .2s ease; }
+  .acc[open] > summary .chev{ transform:rotate(90deg); }
+  .accbody{ padding:0 16px 16px; }
+  .accbody p{ margin:0 0 10px; font-size:14px; line-height:1.55; color:rgba(234,247,255,.72); }
+  .accbody p:last-child{ margin-bottom:0; }
+  .accbody b{ color:var(--ink); }
+
+  /* version log */
+  .vlog{ display:flex; flex-direction:column; gap:10px; }
+  .vitem{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 16px;
+          border-left:3px solid var(--ice); }
+  .vitem .vhead{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .vitem .vtitle{ font-size:16px; font-weight:800; }
+  .vitem .vtag{ font-size:11px; font-weight:800; letter-spacing:.06em; color:#04121f;
+                background:var(--ice); padding:2px 8px; border-radius:999px; }
+  .vitem .vdate{ font-size:12px; color:rgba(234,247,255,.5); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .vitem .vwhat{ font-size:14px; line-height:1.5; color:rgba(234,247,255,.78); margin:10px 0 0; }
+  .vitem .vben{ font-size:13px; line-height:1.5; color:var(--go); margin:8px 0 0; }
+  .vitem .vben b{ color:var(--go); }
 </style>
 </head>
 <body>
@@ -168,15 +208,24 @@
     <button class="chip" id="userChip">
       <span class="av" id="userAv">Y</span><span id="userName">You</span><span class="caret">▾</span>
     </button>
-    <button class="iconbtn" id="statsBtn" aria-label="Statistics">
-      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M2.5 16.4 C5 16.2 6.1 11.3 9 11.9 C11.6 12.4 12.6 7.4 15.4 6.1 C17.6 5.1 19.4 4.6 21.5 3.4 L21.5 20 L2.5 20 Z"
-              fill="#7fe3ff" opacity="0.16"/>
-        <path d="M2.5 16.4 C5 16.2 6.1 11.3 9 11.9 C11.6 12.4 12.6 7.4 15.4 6.1 C17.6 5.1 19.4 4.6 21.5 3.4"
-              stroke="#7fe3ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="21.5" cy="3.5" r="2.4" fill="#7fe3ff"/>
-      </svg>
-    </button>
+    <div class="setgroup">
+      <button class="iconbtn" id="statsBtn" aria-label="Statistics">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M2.5 16.4 C5 16.2 6.1 11.3 9 11.9 C11.6 12.4 12.6 7.4 15.4 6.1 C17.6 5.1 19.4 4.6 21.5 3.4 L21.5 20 L2.5 20 Z"
+                fill="#7fe3ff" opacity="0.16"/>
+          <path d="M2.5 16.4 C5 16.2 6.1 11.3 9 11.9 C11.6 12.4 12.6 7.4 15.4 6.1 C17.6 5.1 19.4 4.6 21.5 3.4"
+                stroke="#7fe3ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="21.5" cy="3.5" r="2.4" fill="#7fe3ff"/>
+        </svg>
+      </button>
+      <button class="iconbtn" id="settingsBtn" aria-label="Settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="3.1" stroke="#7fe3ff" stroke-width="2"/>
+          <path d="M12 2.6v2.3M12 19.1v2.3M21.4 12h-2.3M4.9 12H2.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9 5.3 5.3"
+                stroke="#7fe3ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <header>
@@ -269,6 +318,63 @@
       </div>
       <div class="histhead">Recent sessions</div>
       <div class="hist" id="hist"></div>
+    </div>
+  </div>
+
+  <!-- settings -->
+  <div id="settings" class="overlay hide">
+    <div class="statshead">
+      <button class="iconbtn" id="settingsBack" aria-label="Back">‹</button>
+      <div class="statstitle">Settings</div>
+      <div style="width:42px"></div>
+    </div>
+    <div class="statsbody">
+
+      <div class="seclabel">Your data</div>
+      <div class="setcard">
+        <p>Everything lives on this device only — no account, no cloud. Export a
+          backup file you can keep safe or move to another phone.</p>
+        <button class="btn mini2 full" id="exportBtn">Export my data</button>
+        <button class="btn ghost mini2 full" id="copyBtn" style="margin-top:10px;">Copy backup to clipboard</button>
+        <button class="btn ghost mini2 full" id="importBtn" style="margin-top:10px;">Import / restore…</button>
+        <input type="file" id="importFile" accept="application/json,.json" class="hide" />
+        <div class="setnote">Export includes every profile, their goals and full history.</div>
+      </div>
+
+      <div class="seclabel">How this works</div>
+      <details class="acc">
+        <summary>Getting started <span class="chev">›</span></summary>
+        <div class="accbody">
+          <p><b>Pick a goal</b> with the 3 / 6 / 9-minute presets, or nudge it ±1 minute with the − / + buttons.</p>
+          <p><b>Tap Start</b>, step into the cold, and let the ring count you down. Tap <b>Stop</b> anytime to end and save the session.</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>The countdown &amp; colours <span class="chev">›</span></summary>
+        <div class="accbody">
+          <p>The timer runs through <b>three colour-coded phases</b> across equal thirds of your goal: <b>blue → yellow → green</b>. A glance tells you how far you've come.</p>
+          <p>You'll hear soft <b>3-2-1 beeps</b> just before the finish, then a <b>chime and a big green screen flash</b> the instant you hit your goal.</p>
+          <p>After the goal it flips to a <b>bonus count-up</b>, so you can push past your target and bank extra seconds.</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>Profiles &amp; stats <span class="chev">›</span></summary>
+        <div class="accbody">
+          <p><b>Add a profile</b> per person from the name chip at the top left. Each keeps their own goal and their own history.</p>
+          <p>The <b>stats screen</b> shows sessions, total time, your longest shower, goal-hit rate, day-streak and average — plus recent-session, calendar and weekly charts.</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>Offline &amp; Shortcuts <span class="chev">›</span></summary>
+        <div class="accbody">
+          <p><b>Add to Home Screen</b> from Safari's Share menu and it runs full-screen and fully <b>offline</b>, like a real app.</p>
+          <p>It keeps the <b>screen awake</b> during a session. You can also auto-start it from an <b>Apple Shortcut</b> — open it with <b>?goal=6</b> to preset minutes and <b>?start</b> to begin immediately.</p>
+        </div>
+      </details>
+
+      <div class="seclabel">Version log</div>
+      <div class="vlog" id="vlog"></div>
+
     </div>
   </div>
 
@@ -656,6 +762,121 @@
     $('stats').classList.remove('hide');
   }
 
+  /* ============ settings: data export / import ============ */
+  function collectData(){
+    const data = {};
+    for(let i = 0; i < LS.length; i++){
+      const k = LS.key(i);
+      if(k && k.startsWith('cst.')) data[k] = LS.getItem(k);
+    }
+    return data;
+  }
+  function buildBackup(){
+    return {
+      app: 'Cold Shower Timer',
+      format: 'cst-backup',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: collectData()
+    };
+  }
+  function exportData(){
+    const text = JSON.stringify(buildBackup(), null, 2);
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().slice(0,16).replace(/[:T]/g,'-');
+    const a = document.createElement('a');
+    a.href = url; a.download = `cold-shower-backup-${stamp}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function flashBtn(btn, msg){
+    const orig = btn.dataset.label || btn.textContent;
+    btn.dataset.label = orig;
+    btn.textContent = msg; btn.classList.add('ok');
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => { btn.textContent = orig; btn.classList.remove('ok'); }, 1600);
+  }
+  async function copyData(btn){
+    const text = JSON.stringify(buildBackup(), null, 2);
+    try {
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(text);
+      } else {
+        throw new Error('no clipboard api');
+      }
+      flashBtn(btn, 'Copied ✓');
+    } catch(e){
+      // fallback: hidden textarea + execCommand (older iOS Safari)
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly','');
+        ta.style.position = 'fixed'; ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.select(); ta.setSelectionRange(0, text.length);
+        const ok = document.execCommand('copy');
+        ta.remove();
+        flashBtn(btn, ok ? 'Copied ✓' : 'Copy failed');
+      } catch(e2){
+        flashBtn(btn, 'Copy failed');
+      }
+    }
+  }
+  function importData(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      let payload;
+      try { payload = JSON.parse(reader.result); } catch(e){ payload = null; }
+      const data = payload && payload.data && typeof payload.data === 'object' ? payload.data : null;
+      if(!data || payload.format !== 'cst-backup'){
+        alert("That doesn't look like a Cold Shower backup file."); return;
+      }
+      const keys = Object.keys(data).filter(k => k.startsWith('cst.'));
+      if(!keys.length){ alert('No Cold Shower data found in that file.'); return; }
+      if(!confirm('Restore this backup? It replaces all current profiles and history on this device.')) return;
+      for(let i = LS.length - 1; i >= 0; i--){                 // clear existing cst.* keys
+        const k = LS.key(i); if(k && k.startsWith('cst.')) LS.removeItem(k);
+      }
+      keys.forEach(k => LS.setItem(k, data[k]));
+      // reload state from restored storage
+      users = loadUsers(); activeId = LS.getItem('cst.active');
+      initUsers(); loadGoal(); refreshChip(); renderIdle();
+      closeSettings();
+      alert('Backup restored. ✅');
+    };
+    reader.readAsText(file);
+  }
+
+  /* ============ settings: version log ============ */
+  const VERSIONLOG = [
+    { v: 'v1.3', date: '2026-08-12 07:20', title: 'Settings page',
+      what: 'Added this Settings screen: a one-tap data backup (export & restore), a “How this works” guide, and this version log.',
+      benefit: 'Your sessions are no longer trapped on one device — back them up or move them to a new phone — and there’s an in-app explainer for every feature.' },
+    { v: 'v1.2', date: '2026-08-10 21:19', title: 'Profiles & statistics',
+      what: 'Added multiple named profiles (each with their own goal and history) and a full statistics screen with tiles plus recent-session, calendar and weekly charts.',
+      benefit: 'The whole household can share one app and actually see their progress — streaks, totals and goal-hit rate keep you coming back.' },
+    { v: 'v1.1', date: '2026-08-10 15:23', title: 'New app icon',
+      what: 'Redesigned the Home Screen icon as a snowflake inside a stopwatch dial.',
+      benefit: 'Instantly recognisable on your Home Screen and clearly on-theme.' },
+    { v: 'v1.0', date: '2026-08-10 14:52', title: 'Installable offline app',
+      what: 'Turned the timer into a PWA with app icons and offline caching, so it can be added to the Home Screen.',
+      benefit: 'Runs full-screen like a real app and works with no signal — no App Store, nothing to expire.' },
+    { v: 'v0.9', date: '2026-08-07 16:25', title: 'First release',
+      what: 'The core cold-shower timer: goal presets, a colour-coded countdown ring, finish chime and green flash, and a bonus count-up.',
+      benefit: 'A dead-simple, focused way to time a cold shower and push a little further each time.' },
+  ];
+  function renderVersionLog(){
+    $('vlog').innerHTML = VERSIONLOG.map(e =>
+      `<div class="vitem">
+         <div class="vhead"><span class="vtitle">${e.title}</span><span class="vtag">${e.v}</span></div>
+         <div class="vdate">${e.date}</div>
+         <p class="vwhat">${e.what}</p>
+         <p class="vben"><b>Why it helps:</b> ${e.benefit}</p>
+       </div>`).join('');
+  }
+  function openSettings(){ renderVersionLog(); $('settings').classList.remove('hide'); }
+  function closeSettings(){ $('settings').classList.add('hide'); }
+
   /* ============ wire up ============ */
   $('minus').onclick = () => { goal = Math.max(MIN_GOAL, goal - STEP); saveGoal(); renderIdle(); };
   $('plus').onclick  = () => { goal = Math.min(MAX_GOAL, goal + STEP); saveGoal(); renderIdle(); };
@@ -671,6 +892,17 @@
 
   $('statsBtn').onclick = openStats;
   $('statsBack').onclick = () => $('stats').classList.add('hide');
+
+  $('settingsBtn').onclick = openSettings;
+  $('settingsBack').onclick = closeSettings;
+  $('exportBtn').onclick = exportData;
+  $('copyBtn').onclick = e => copyData(e.currentTarget);
+  $('importBtn').onclick = () => $('importFile').click();
+  $('importFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if(f) importData(f);
+    e.target.value = '';                             // allow re-picking the same file
+  });
   $('seg').addEventListener('click', e => {
     const b = e.target.closest('button[data-m]'); if(!b) return;
     chartMode = b.dataset.m;

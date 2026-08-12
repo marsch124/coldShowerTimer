@@ -21,6 +21,9 @@ Home Screen with its own icon — no App Store, no installs, nothing to expire.
   weekly totals) and a recent-session history.
 - **Keeps the screen awake** during a session so it won't sleep mid-shower.
 - **Works fully offline** once added to the Home Screen.
+- **Settings page** — export a backup of all your data (and restore it on any
+  device), a collapsible "How this works" guide, and a dated version log of what
+  changed and why.
 
 ## Use it on your iPhone
 
