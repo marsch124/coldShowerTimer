@@ -158,6 +158,18 @@
   #overlay .msg{ font-size:18px; color:var(--ink); max-width:320px; line-height:1.4;}
   #overlay .medal{ font-size:60px; }
 
+  /* personal-best flourish */
+  .pbbadge{ font-size:15px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#3a2600;
+            background:linear-gradient(180deg,#ffe08a,#f5b83d); padding:8px 18px; border-radius:999px;
+            box-shadow:0 6px 22px rgba(245,184,61,.45); }
+  #overlay.pb{ background:
+      radial-gradient(90% 60% at 50% 32%, rgba(245,184,61,.22), transparent 62%),
+      rgba(20,14,2,.94); }
+  #overlay.pb .medal{ animation:pbpop .6s cubic-bezier(.2,1.3,.4,1) both; }
+  @keyframes pbpop{ 0%{ transform:scale(.4); opacity:0; } 60%{ transform:scale(1.25); } 100%{ transform:scale(1); opacity:1; } }
+  #overlay.pb .big{ color:#ffd45e; text-shadow:0 0 22px rgba(245,184,61,.35); }
+  .pbmark{ font-size:14px; }
+
   /* user sheet */
   #sheet{ justify-content:flex-end; }
   .sheetcard{ background:#08243b; border-top-left-radius:22px; border-top-right-radius:22px;
@@ -382,6 +394,7 @@
   <!-- session summary -->
   <div id="overlay" class="overlay center hide">
     <div class="medal" id="medal">🏆</div>
+    <div class="pbbadge hide" id="ovPB"></div>
     <div class="big" id="ovTime">0:00</div>
     <div class="msg" id="ovMsg"></div>
     <button class="btn" id="againBtn" style="max-width:280px;">Go again</button>
@@ -487,13 +500,14 @@
           <p>You'll hear soft <b>3-2-1 beeps</b> just before the finish, then a <b>chime and a big green screen flash</b> the instant you hit your goal.</p>
           <p>When you reach your goal the <b>whole background turns green and stays green</b> for the rest of the session — so you can tell you've made it at a glance, even from across the shower with water running.</p>
           <p>After the goal it flips to a <b>bonus count-up</b>, so you can push past your target and bank extra seconds.</p>
+          <p>Beat your longest-ever shower and the finish screen throws a <b>gold “New personal best!” celebration</b> — a special medal, a warm gold glow and a brighter chime. Every record-setting session is also flagged with a 🏅 in your history.</p>
         </div>
       </details>
       <details class="acc">
         <summary>Profiles &amp; stats <span class="chev">›</span></summary>
         <div class="accbody">
           <p><b>Add a profile</b> per person from the name chip at the top left. Each keeps their own goal and their own history.</p>
-          <p>The <b>stats screen</b> shows sessions, total time, your longest shower, goal-hit rate, day-streak and average — plus recent-session, calendar and weekly charts.</p>
+          <p>The <b>stats screen</b> shows sessions, total time, your longest shower, goal-hit rate, day-streak and average — plus recent-session, calendar and weekly charts. Record-setting sessions are marked with a 🏅 in the recent list.</p>
           <p>Tap <b>Adjust</b> under “Recent sessions” to fix your history: <b>add a shower you forgot to time</b> (set its date, length and goal) or <b>delete one that was logged by mistake</b>.</p>
         </div>
       </details>
@@ -637,6 +651,11 @@
     tone(523.25,0,0.5,0.3); tone(659.25,0.12,0.5,0.3);
     tone(783.99,0.24,0.7,0.34); tone(1046.5,0.36,0.8,0.28);
   }
+  function celebrate(){                              // brighter sparkle for a personal best
+    if(!audio) return;
+    tone(659.25,0,0.4,0.26); tone(880,0.10,0.4,0.26);
+    tone(1046.5,0.20,0.5,0.30); tone(1318.5,0.32,0.6,0.26);
+  }
 
   /* ---------- wake lock ---------- */
   async function keepAwake(){ try{ if('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){} }
@@ -758,8 +777,15 @@
     if(phase === 'ready'){ resetToIdleUI(); return; }   // aborted before timing began
     const elapsed = (Date.now() - startAt) / 1000;
     const reached = elapsed >= goal;
+    const dur = Math.round(elapsed);
+    // work out personal-best / first-session BEFORE saving (compare to prior history)
+    const prior = testMode ? [] : loadSessions(activeId);
+    const prevLongest = prior.reduce((a, x) => Math.max(a, x.dur), 0);
+    const counts = !testMode && dur >= 3;
+    const isFirst = counts && prior.length === 0;
+    const isPB = counts && prior.length > 0 && dur > prevLongest;
     saveSession(elapsed, reached);
-    showSummary(elapsed, reached);
+    showSummary(elapsed, reached, { isPB, isFirst });
     resetToIdleUI();
   }
   function startTest(){
@@ -787,7 +813,7 @@
     arr.push({ t: startAt, goal, dur: Math.round(elapsed), reached, bonus: Math.max(0, Math.round(elapsed - goal)) });
     saveSessions(activeId, arr);
   }
-  function showSummary(elapsed, reached){
+  function showSummary(elapsed, reached, flags = {}){
     const bonus = Math.max(0, elapsed - goal);
     $('ovTime').textContent = fmt(elapsed);
     if(reached){
@@ -798,6 +824,21 @@
     } else {
       $('medal').textContent = '❄️';
       $('ovMsg').innerHTML = `Good effort — <b>${fmt(goal - elapsed)}</b> short of your ${fmt(goal)} goal. Next time.`;
+    }
+    // personal-best / first-session flourish layers on top of the base result
+    const pbEl = $('ovPB');
+    $('overlay').classList.remove('pb');
+    if(flags.isPB){
+      pbEl.textContent = '🏅 New personal best!';
+      pbEl.classList.remove('hide');
+      $('medal').textContent = '🏅';
+      $('overlay').classList.add('pb');
+      celebrate();
+    } else if(flags.isFirst){
+      pbEl.textContent = '❄️ First one down!';
+      pbEl.classList.remove('hide');
+    } else {
+      pbEl.classList.add('hide');
     }
     $('overlay').classList.remove('hide');
   }
@@ -962,10 +1003,20 @@
     $('chartLegend').innerHTML = r.legend;
   }
 
+  // timestamps of sessions that set a new duration record (the first ever isn't one)
+  function pbSet(s){
+    const set = new Set(); let max = 0;
+    s.slice().sort((a, b) => a.t - b.t).forEach((x, i) => {
+      if(i > 0 && x.dur > max) set.add(x.t);
+      if(x.dur > max) max = x.dur;
+    });
+    return set;
+  }
   function renderHistory(s){
     const list = $('hist');
     const recent = s.slice(-20).reverse();
     if(!recent.length){ list.innerHTML = `<div class="empty">Your finished showers will appear here.</div>`; return; }
+    const pbs = pbSet(s);
     list.innerHTML = recent.map(x => {
       const d = new Date(x.t);
       const when = d.toLocaleDateString(undefined,{ weekday:'short', month:'short', day:'numeric' }) +
@@ -979,7 +1030,8 @@
         `<path d="M6.6 6.8l.9 11.3a2.1 2.1 0 0 0 2.1 1.9h4.8a2.1 2.1 0 0 0 2.1-1.9l.9-11.3" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>`+
         `<path d="M10.2 10.6v5.4M13.8 10.6v5.4" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/>`+
         `</svg></button>` : '';
-      return `<div class="hrow"><span class="dur">${fmt(x.dur)}</span><span class="meta">${when}</span>${badge}${del}</div>`;
+      const pb = pbs.has(x.t) ? `<span class="pbmark" title="Personal best">🏅</span>` : '';
+      return `<div class="hrow"><span class="dur">${fmt(x.dur)}</span>${pb}<span class="meta">${when}</span>${badge}${del}</div>`;
     }).join('');
   }
 
@@ -1144,6 +1196,9 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.13', date: '2026-08-12 12:15', title: 'Personal-best celebration',
+      what: 'Beat your longest-ever shower and the finish screen now celebrates it — a gold “New personal best!” badge, a special medal with a little pop, a warm gold glow and a brighter chime. Every record-setting session is also flagged with a 🏅 in your history.',
+      benefit: 'Pushing past your record feels genuinely rewarding, giving you a reason to go a little longer each time.' },
     { v: 'v1.12', date: '2026-08-12 12:00', title: 'Get-ready lead-in & phase chimes',
       what: 'Tapping Start now runs a quick 3·2·1 lead-in (tap the dial to skip) so you can step in before timing begins. And as you cross into the yellow and green thirds, a soft rising chime marks each boundary. Both can be toggled under the new Settings → Timer cues.',
       benefit: 'No more fumbling as the clock starts, and you can feel your progress through the phases by ear — no need to watch the screen with water running.' },
