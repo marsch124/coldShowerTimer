@@ -20,13 +20,28 @@
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;height:100%;}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
-    color:var(--ink);
+  /* Paint the full screen on <html> too — including the iOS home-indicator
+     safe-area at the very bottom — so no white strip shows through there. */
+  html{
+    background-color:var(--bg0);
     background:
       radial-gradient(120% 80% at 50% -10%, var(--bg2), transparent 60%),
       linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 70%);
     background-attachment:fixed;
+    transition:background-color .55s ease;
+  }
+  html.done{
+    background-color:#05381c;
+    background:
+      radial-gradient(125% 85% at 50% -8%, #2fd06f, transparent 62%),
+      linear-gradient(180deg, #0e7c40 0%, #05381c 72%);
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
+    color:var(--ink);
+    /* base gradient lives on <html> (see above) so it fills the iOS safe-area;
+       body stays transparent so the green "done" wash isn't painted over. */
+    background:transparent;
     min-height:100dvh;
     display:flex; flex-direction:column;
     padding: max(env(safe-area-inset-top), 12px) 18px max(env(safe-area-inset-bottom), 18px);
@@ -46,8 +61,8 @@
   body::after{
     content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
     background:
-      radial-gradient(120% 80% at 50% -10%, #1c7a49, transparent 60%),
-      linear-gradient(180deg, #0d552f 0%, #04240f 70%);
+      radial-gradient(125% 85% at 50% -8%, #2fd06f, transparent 62%),
+      linear-gradient(180deg, #0e7c40 0%, #05381c 72%);
     opacity:0; transition:opacity .55s ease;
   }
   body.done::after{ opacity:1; }
@@ -84,6 +99,10 @@
          font-variant-numeric:tabular-nums; white-space:nowrap;
          color:var(--ice); text-shadow:0 0 14px rgba(0,0,0,.35); }
   @media(min-width:440px){ #time{ font-size:140px; } }
+  /* the "+bonus" count-up is one character wider — shrink it a touch so the
+     leading + doesn't push the digits out to the edge of the ring. */
+  body.done #time{ font-size:26vw; }
+  @media(min-width:440px){ body.done #time{ font-size:116px; } }
   #phaseLabel{ margin-top:12px; font-size:15px; letter-spacing:.16em; text-transform:uppercase;
                font-weight:700; color:var(--ice-dim); min-height:18px; }
 
@@ -613,6 +632,7 @@
   function reachGoal(){
     phase = 'bonus'; lastBeepSec = null; chime();
     document.body.classList.add('done');            // persistent green background
+    document.documentElement.classList.add('done'); // green reaches the bottom safe-area too
     document.body.classList.remove('flash'); void document.body.offsetWidth;
     document.body.classList.add('flash');
     $('time').style.color = 'var(--go)'; setRing(1, 'var(--go)');
@@ -628,6 +648,7 @@
     $('tagline').textContent = 'Breathe slow. You’ve got this.';
     const b = $('startBtn'); b.textContent = 'Stop'; b.classList.add('stop'); b.onclick = stop;
     document.body.classList.remove('flash', 'done');
+    document.documentElement.classList.remove('done');
     raf = requestAnimationFrame(tick);
   }
   function stop(){
@@ -648,6 +669,7 @@
     phase = 'idle';
     if(testMode){ testMode = false; loadGoal(); }   // restore the real goal
     document.body.classList.remove('flash', 'done');
+    document.documentElement.classList.remove('done');
     $('picker').classList.remove('hide');
     $('topbar').classList.remove('hide');
     $('tagline').textContent = 'Set your goal & brace yourself';
@@ -1000,6 +1022,9 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.8', date: '2026-08-12 11:05', title: 'Punchier green finish & tidier bonus',
+      what: 'The “you made it” background is now a brighter, more vivid green that fills the whole screen — including the very bottom edge on iPhone, where a white strip used to peek through. The bonus “+” count-up is also sized down slightly so it sits neatly inside the ring.',
+      benefit: 'The goal-reached moment pops more and looks clean edge-to-edge, and the bonus timer no longer crowds the circle.' },
     { v: 'v1.7', date: '2026-08-12 11:00', title: 'Version shown on the main page',
       what: 'A small version number now sits just under the tagline on the home screen.',
       benefit: 'You can tell at a glance which release you’re running — handy after an update to confirm the new version has loaded.' },
