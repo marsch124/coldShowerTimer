@@ -137,6 +137,18 @@
   .linkbtn{ background:none; border:none; color:var(--ice); font-size:16px; font-weight:600; padding:8px; }
   .hide{ display:none !important; }
 
+  /* home-screen backup reminder (slim, dismissible) */
+  .nudge{ display:flex; align-items:center; gap:10px; width:100%; max-width:420px;
+          margin:10px auto 0; padding:10px 12px; border-radius:14px;
+          border:1px solid var(--line); background:var(--card); }
+  .nudge .nicon{ font-size:18px; line-height:1; }
+  .nudge .ntext{ flex:1; font-size:13px; line-height:1.3; color:rgba(234,247,255,.8); }
+  .nudge .nbtn{ padding:7px 13px; border-radius:999px; border:none; font-size:13px; font-weight:800;
+                color:#04121f; background:linear-gradient(180deg,#a6ecff,#63d0f2); }
+  .nudge .nbtn:active{ transform:translateY(1px); }
+  .nudge .nx{ width:28px; height:28px; border-radius:50%; border:1px solid var(--line);
+              background:transparent; color:var(--ink); font-size:13px; }
+
   /* overlays */
   .overlay{ position:fixed; inset:0; z-index:20; background:rgba(4,18,31,.9);
             -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
@@ -308,6 +320,13 @@
     <span class="ver" id="appVer"></span>
   </header>
 
+  <div id="backupNudge" class="nudge hide">
+    <span class="nicon">🗄️</span>
+    <span class="ntext">Time for a backup — keep your history safe.</span>
+    <button id="backupNow" class="nbtn">Back up</button>
+    <button id="backupDismiss" class="nx" aria-label="Dismiss reminder">✕</button>
+  </div>
+
   <main>
     <div class="dial">
       <svg viewBox="0 0 200 200" aria-hidden="true">
@@ -456,6 +475,7 @@
         <summary>Backup &amp; test timer <span class="chev">›</span></summary>
         <div class="accbody">
           <p>Under <b>Your data</b> you can <b>export</b> a backup file, <b>copy</b> it to the clipboard, or <b>import / restore</b> one — handy for keeping your history safe or moving it to a new phone.</p>
+          <p>Once you've built up some history, a slim <b>backup reminder</b> appears on the home screen if it's been over a <b>month</b> since your last backup. Tap <b>Back up</b> to jump to your data options, or <b>✕</b> to dismiss it for a week. Any export, copy or restore resets the reminder.</p>
           <p>The <b>30-second test timer</b> (also in Settings) runs a quick countdown so you can preview the beeps, chime and green finish without a full shower. Test runs are <b>never saved</b> to your stats.</p>
         </div>
       </details>
@@ -649,6 +669,7 @@
     phase = 'countdown'; startAt = Date.now(); lastBeepSec = null;
     $('picker').classList.add('hide');
     $('topbar').classList.add('hide');
+    $('backupNudge').classList.add('hide');
     $('tagline').textContent = 'Breathe slow. You’ve got this.';
     const b = $('startBtn'); b.textContent = 'Stop'; b.classList.add('stop'); b.onclick = stop;
     document.body.classList.remove('flash', 'done');
@@ -679,6 +700,7 @@
     $('tagline').textContent = 'Set your goal & brace yourself';
     const b = $('startBtn'); b.textContent = 'Start'; b.classList.remove('stop'); b.onclick = start;
     renderIdle();
+    maybeShowBackupNudge();
   }
   function saveSession(elapsed, reached){
     if(testMode) return;                         // test runs never touch stats
@@ -966,6 +988,7 @@
     a.href = url; a.download = `cold-shower-backup-${stamp}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    stampBackup();
   }
   function flashBtn(btn, msg){
     const orig = btn.dataset.label || btn.textContent;
@@ -982,7 +1005,7 @@
       } else {
         throw new Error('no clipboard api');
       }
-      flashBtn(btn, 'Copied ✓');
+      flashBtn(btn, 'Copied ✓'); stampBackup();
     } catch(e){
       // fallback: hidden textarea + execCommand (older iOS Safari)
       try {
@@ -994,6 +1017,7 @@
         const ok = document.execCommand('copy');
         ta.remove();
         flashBtn(btn, ok ? 'Copied ✓' : 'Copy failed');
+        if(ok) stampBackup();
       } catch(e2){
         flashBtn(btn, 'Copy failed');
       }
@@ -1018,14 +1042,33 @@
       // reload state from restored storage
       users = loadUsers(); activeId = LS.getItem('cst.active');
       initUsers(); loadGoal(); refreshChip(); renderIdle();
+      stampBackup();                                  // they clearly have a backup file
       closeSettings();
       alert('Backup restored. ✅');
     };
     reader.readAsText(file);
   }
 
+  /* ---- monthly backup reminder ---- */
+  // Stamp "just backed up" whenever the user exports, copies or restores, and
+  // nudge (once every 30 days) if there's real history worth protecting.
+  function stampBackup(){ LS.setItem('cst.lastBackup', String(Date.now())); maybeShowBackupNudge(); }
+  function maybeShowBackupNudge(){
+    const el = $('backupNudge'); if(!el) return;
+    const now = Date.now();
+    const last = parseInt(LS.getItem('cst.lastBackup') || '0', 10);
+    const snooze = parseInt(LS.getItem('cst.backupSnooze') || '0', 10);
+    const due = !last || (now - last) > 30 * DAY;
+    const snoozed = snooze && (now - snooze) < 7 * DAY;
+    const enough = users.reduce((n, u) => n + loadSessions(u.id).length, 0) >= 5;
+    el.classList.toggle('hide', !(due && enough && !snoozed && phase === 'idle'));
+  }
+
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.11', date: '2026-08-12 11:45', title: 'Monthly backup reminder',
+      what: 'A slim reminder now appears on the home screen if it’s been over a month since you last backed up (and you’ve built up at least a few sessions). Tap Back up to open your data options, or dismiss it to snooze for a week — any export, copy or restore resets it.',
+      benefit: 'Your streaks and history are far less likely to be lost to a forgotten backup, without the app ever nagging you.' },
     { v: 'v1.10', date: '2026-08-12 11:30', title: 'Updates arrive faster',
       what: 'Changed how the app fetches itself so a freshly published version shows up right away, instead of sometimes waiting behind a stale cached copy.',
       benefit: 'After you publish an update, closing and reopening the app is enough to see it — no more wondering whether the new version has loaded.' },
@@ -1105,6 +1148,8 @@
   });
   $('exportBtn').onclick = exportData;
   $('copyBtn').onclick = e => copyData(e.currentTarget);
+  $('backupNow').onclick = openSettings;
+  $('backupDismiss').onclick = () => { LS.setItem('cst.backupSnooze', String(Date.now())); maybeShowBackupNudge(); };
   $('importBtn').onclick = () => $('importFile').click();
   $('importFile').addEventListener('change', e => {
     const f = e.target.files && e.target.files[0];
@@ -1137,6 +1182,7 @@
     if(!isNaN(m)){ goal = Math.max(MIN_GOAL, Math.min(MAX_GOAL, Math.round(m)*60)); saveGoal(); }
   }
   renderIdle();
+  maybeShowBackupNudge();
   if(params.has('start') || params.has('go') || params.has('autostart')) start();
 
   if('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(()=>{});
