@@ -173,6 +173,18 @@
   .badge.hit{ background:rgba(44,224,122,.16); color:var(--go); }
   .badge.miss{ background:rgba(127,227,255,.12); color:var(--ice); }
 
+  /* adjust sessions */
+  .histrow{ display:flex; align-items:center; justify-content:space-between; }
+  .linkbtn.adjbtn{ font-size:14px; padding:2px 4px; letter-spacing:0; text-transform:none; }
+  .hrow .del{ color:#ff8f9c; border-color:rgba(255,143,156,.4); flex:0 0 auto; }
+  .fld{ display:flex; flex-direction:column; gap:6px; font-size:13px;
+        letter-spacing:.02em; color:rgba(234,247,255,.6); }
+  .fld > input{ padding:12px; border-radius:12px; border:1px solid var(--line);
+                background:rgba(0,0,0,.25); color:var(--ink); font-size:16px; }
+  .dur2{ display:flex; align-items:center; gap:8px; color:var(--ink); font-size:15px; }
+  .dur2 input{ width:82px; padding:12px; border-radius:12px; border:1px solid var(--line);
+               background:rgba(0,0,0,.25); color:var(--ink); font-size:16px; }
+
   /* settings */
   .setgroup{ display:flex; gap:8px; align-items:center; }
   .seclabel{ font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:rgba(234,247,255,.5);
@@ -230,10 +242,29 @@
         </svg>
       </button>
       <button class="iconbtn" id="settingsBtn" aria-label="Settings">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="3.1" stroke="#7fe3ff" stroke-width="2"/>
-          <path d="M12 2.6v2.3M12 19.1v2.3M21.4 12h-2.3M4.9 12H2.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9 5.3 5.3"
-                stroke="#7fe3ff" stroke-width="2" stroke-linecap="round"/>
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <mask id="cogHole">
+              <rect width="24" height="24" fill="black"/>
+              <g fill="white">
+                <circle cx="12" cy="12" r="7.3"/>
+                <rect x="10.6" y="1.6" width="2.8" height="5.6" rx="1.4" transform="rotate(0 12 12)"/>
+                <rect x="10.6" y="1.6" width="2.8" height="5.6" rx="1.4" transform="rotate(45 12 12)"/>
+                <rect x="10.6" y="1.6" width="2.8" height="5.6" rx="1.4" transform="rotate(90 12 12)"/>
+                <rect x="10.6" y="1.6" width="2.8" height="5.6" rx="1.4" transform="rotate(135 12 12)"/>
+                <rect x="10.6" y="1.6" width="2.8" height="5.6" rx="1.4" transform="rotate(180 12 12)"/>
+                <rect x="10.6" y="1.6" width="2.8" height="5.6" rx="1.4" transform="rotate(225 12 12)"/>
+                <rect x="10.6" y="1.6" width="2.8" height="5.6" rx="1.4" transform="rotate(270 12 12)"/>
+                <rect x="10.6" y="1.6" width="2.8" height="5.6" rx="1.4" transform="rotate(315 12 12)"/>
+              </g>
+              <circle cx="12" cy="12" r="3.05" fill="black"/>
+            </mask>
+            <linearGradient id="cogGrad" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#a6ecff"/>
+              <stop offset="1" stop-color="#63d0f2"/>
+            </linearGradient>
+          </defs>
+          <rect width="24" height="24" fill="url(#cogGrad)" mask="url(#cogHole)"/>
         </svg>
       </button>
     </div>
@@ -327,7 +358,11 @@
         <div id="chart"></div>
         <div class="legend" id="chartLegend"></div>
       </div>
-      <div class="histhead">Recent sessions</div>
+      <div class="histhead histrow">
+        <span>Recent sessions</span>
+        <button class="linkbtn adjbtn" id="adjustBtn">Adjust</button>
+      </div>
+      <button class="btn ghost mini2 full hide" id="addSessBtn" style="margin-bottom:10px;">+ Add a missed session</button>
       <div class="hist" id="hist"></div>
     </div>
   </div>
@@ -352,6 +387,13 @@
         <div class="setnote">Export includes every profile, their goals and full history.</div>
       </div>
 
+      <div class="seclabel">Test timer</div>
+      <div class="setcard">
+        <p>Run a quick <b>30-second</b> countdown to preview the beeps, chime, green finish and
+          summary screen without waiting out a full shower. Test runs are <b>not saved</b> to your stats.</p>
+        <button class="btn mini2 full" id="testBtn">Start 30-second test</button>
+      </div>
+
       <div class="seclabel">How this works</div>
       <details class="acc">
         <summary>Getting started <span class="chev">›</span></summary>
@@ -361,10 +403,11 @@
         </div>
       </details>
       <details class="acc">
-        <summary>The countdown &amp; colours <span class="chev">›</span></summary>
+        <summary>The countdown, colours &amp; finish <span class="chev">›</span></summary>
         <div class="accbody">
           <p>The timer runs through <b>three colour-coded phases</b> across equal thirds of your goal: <b>blue → yellow → green</b>. A glance tells you how far you've come.</p>
           <p>You'll hear soft <b>3-2-1 beeps</b> just before the finish, then a <b>chime and a big green screen flash</b> the instant you hit your goal.</p>
+          <p>When you reach your goal the <b>whole background turns green and stays green</b> for the rest of the session — so you can tell you've made it at a glance, even from across the shower with water running.</p>
           <p>After the goal it flips to a <b>bonus count-up</b>, so you can push past your target and bank extra seconds.</p>
         </div>
       </details>
@@ -373,6 +416,14 @@
         <div class="accbody">
           <p><b>Add a profile</b> per person from the name chip at the top left. Each keeps their own goal and their own history.</p>
           <p>The <b>stats screen</b> shows sessions, total time, your longest shower, goal-hit rate, day-streak and average — plus recent-session, calendar and weekly charts.</p>
+          <p>Tap <b>Adjust</b> under “Recent sessions” to fix your history: <b>add a shower you forgot to time</b> (set its date, length and goal) or <b>delete one that was logged by mistake</b>.</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>Backup &amp; test timer <span class="chev">›</span></summary>
+        <div class="accbody">
+          <p>Under <b>Your data</b> you can <b>export</b> a backup file, <b>copy</b> it to the clipboard, or <b>import / restore</b> one — handy for keeping your history safe or moving it to a new phone.</p>
+          <p>The <b>30-second test timer</b> (also in Settings) runs a quick countdown so you can preview the beeps, chime and green finish without a full shower. Test runs are <b>never saved</b> to your stats.</p>
         </div>
       </details>
       <details class="acc">
@@ -386,6 +437,28 @@
       <div class="seclabel">Version log</div>
       <div class="vlog" id="vlog"></div>
 
+    </div>
+  </div>
+
+  <!-- add a missed session -->
+  <div id="addSess" class="overlay hide">
+    <div style="flex:1" id="addSessBackdrop"></div>
+    <div class="sheetcard">
+      <div class="sheettitle">Add a session</div>
+      <label class="fld">When
+        <input type="datetime-local" id="asWhen" />
+      </label>
+      <label class="fld">How long it lasted
+        <span class="dur2">
+          <input type="number" id="asMin" min="0" max="120" inputmode="numeric" /> min
+          <input type="number" id="asSec" min="0" max="59" inputmode="numeric" /> sec
+        </span>
+      </label>
+      <label class="fld">Goal at the time
+        <span class="dur2"><input type="number" id="asGoal" min="1" max="30" inputmode="numeric" /> min</span>
+      </label>
+      <button id="asSave" class="btn mini2 full">Save session</button>
+      <button id="asCancel" class="btn ghost mini2 full">Cancel</button>
     </div>
   </div>
 
@@ -403,6 +476,7 @@
   let startAt = 0;
   let raf = null, lastBeepSec = null;
   let audio = null, wakeLock = null;
+  let testMode = false;         // 30-second test run — not saved to stats
 
   /* ============ user + data store (localStorage) ============ */
   const LS = localStorage;
@@ -554,8 +628,15 @@
     showSummary(elapsed, reached);
     resetToIdleUI();
   }
+  function startTest(){
+    testMode = true;
+    goal = 30;                          // temporary; not saved to storage
+    closeSettings();
+    start();
+  }
   function resetToIdleUI(){
     phase = 'idle';
+    if(testMode){ testMode = false; loadGoal(); }   // restore the real goal
     document.body.classList.remove('flash', 'done');
     $('picker').classList.remove('hide');
     $('topbar').classList.remove('hide');
@@ -564,6 +645,7 @@
     renderIdle();
   }
   function saveSession(elapsed, reached){
+    if(testMode) return;                         // test runs never touch stats
     if(elapsed < 3) return;                      // ignore accidental taps
     const arr = loadSessions(activeId);
     arr.push({ t: startAt, goal, dur: Math.round(elapsed), reached, bonus: Math.max(0, Math.round(elapsed - goal)) });
@@ -754,11 +836,17 @@
                    ' · ' + d.toLocaleTimeString(undefined,{ hour:'numeric', minute:'2-digit' });
       const badge = x.reached ? `<span class="badge hit">✓ ${fmt(x.goal)}${x.bonus? ' +'+fmt(x.bonus):''}</span>`
                               : `<span class="badge miss">${fmt(x.goal)} goal</span>`;
-      return `<div class="hrow"><span class="dur">${fmt(x.dur)}</span><span class="meta">${when}</span>${badge}</div>`;
+      const del = adjustMode ? `<button class="mini del" data-t="${x.t}" title="Delete">🗑</button>` : '';
+      return `<div class="hrow"><span class="dur">${fmt(x.dur)}</span><span class="meta">${when}</span>${badge}${del}</div>`;
     }).join('');
   }
 
-  function openStats(){
+  let adjustMode = false;
+  function applyAdjustUI(){
+    $('adjustBtn').textContent = adjustMode ? 'Done' : 'Adjust';
+    $('addSessBtn').classList.toggle('hide', !adjustMode);
+  }
+  function renderStatsBody(){
     const s = loadSessions(activeId);
     const st = computeStats(s);
     $('tiles').innerHTML = [
@@ -770,8 +858,43 @@
       ['avg', st.avg ? fmt(st.avg) : '—', 'Average', ''],
     ].map(([k,v,label,cls]) => `<div class="tile"><div class="v ${cls}">${v}</div><div class="k">${label}</div></div>`).join('');
     renderChart();
+    applyAdjustUI();
     renderHistory(s);
+  }
+  function openStats(){
+    adjustMode = false;
+    renderStatsBody();
     $('stats').classList.remove('hide');
+  }
+
+  /* ---- adjust: add a missed session / delete a mistaken one ---- */
+  function deleteSession(t){
+    if(!confirm('Delete this session? This can’t be undone.')) return;
+    saveSessions(activeId, loadSessions(activeId).filter(x => x.t !== t));
+    renderStatsBody();                              // stays in adjust mode
+  }
+  function openAddSess(){
+    const d = new Date();
+    $('asWhen').value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    $('asMin').value = Math.floor(goal/60);
+    $('asSec').value = 0;
+    $('asGoal').value = Math.max(1, Math.round(goal/60));
+    $('addSess').classList.remove('hide');
+  }
+  function closeAddSess(){ $('addSess').classList.add('hide'); }
+  function saveAddSess(){
+    const when = $('asWhen').value;
+    const t = (when ? new Date(when).getTime() : Date.now()) + Math.floor(Math.random()*60000);
+    const dur = (parseInt($('asMin').value||'0',10))*60 + (parseInt($('asSec').value||'0',10));
+    const g = (parseInt($('asGoal').value||'0',10))*60;
+    if(dur < 1){ alert('Please enter how long the shower lasted.'); return; }
+    if(g < 60){ alert('Please enter a goal of at least 1 minute.'); return; }
+    const arr = loadSessions(activeId);
+    arr.push({ t, goal: g, dur, reached: dur >= g, bonus: Math.max(0, dur - g) });
+    arr.sort((a,b) => a.t - b.t);
+    saveSessions(activeId, arr);
+    closeAddSess();
+    renderStatsBody();
   }
 
   /* ============ settings: data export / import ============ */
@@ -861,6 +984,9 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.5', date: '2026-08-12 10:30', title: 'Test timer, editable stats & fresh Settings icon',
+      what: 'Added a 30-second test timer in Settings; an “Adjust” tool on the stats screen to add showers you forgot to time or delete ones logged by mistake; a redesigned Settings gear icon; and expanded the in-app “How this works” guide to cover every feature.',
+      benefit: 'Preview changes in seconds, keep your history accurate, and find a plain-English explanation for everything the app does — all without leaving it.' },
     { v: 'v1.4', date: '2026-08-12 10:15', title: 'Green “you made it” background',
       what: 'The whole screen now turns a calm green the instant you reach your goal, and stays green through the bonus count-up — on top of the existing chime and flash.',
       benefit: 'One glance from across the shower tells you you’ve hit your target, even if you missed the chime over running water.' },
@@ -910,6 +1036,16 @@
 
   $('settingsBtn').onclick = openSettings;
   $('settingsBack').onclick = closeSettings;
+  $('testBtn').onclick = startTest;
+  $('adjustBtn').onclick = () => { adjustMode = !adjustMode; renderStatsBody(); };
+  $('addSessBtn').onclick = openAddSess;
+  $('asSave').onclick = saveAddSess;
+  $('asCancel').onclick = closeAddSess;
+  $('addSessBackdrop').onclick = closeAddSess;
+  $('hist').addEventListener('click', e => {
+    const b = e.target.closest('button.del'); if(!b) return;
+    deleteSession(parseInt(b.dataset.t, 10));
+  });
   $('exportBtn').onclick = exportData;
   $('copyBtn').onclick = e => copyData(e.currentTarget);
   $('importBtn').onclick = () => $('importFile').click();
