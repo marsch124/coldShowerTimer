@@ -1,5 +1,5 @@
 /* Cold Shower Timer — offline service worker */
-const CACHE = 'cold-shower-v16';
+const CACHE = 'cold-shower-v17';
 const ASSETS = [
   './',
   './index.html',
@@ -36,8 +36,11 @@ self.addEventListener('fetch', (e) => {
       // `cache: 'no-store'` bypasses the browser's HTTP cache so a fresh push
       // shows up immediately instead of waiting out GitHub Pages' ~10-min TTL.
       fetch(e.request, { cache: 'no-store' }).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put('./index.html', copy)).catch(() => {});
+        // Only cache/serve a genuinely good page. A 404/500 (e.g. after a repo
+        // rename moves the URL) must NOT overwrite the last known-good page —
+        // fall back to the cached copy instead of poisoning it.
+        if (!res.ok) return caches.match('./index.html').then((hit) => hit || res);
+        caches.open(CACHE).then((c) => c.put('./index.html', res.clone())).catch(() => {});
         return res;
       }).catch(() => caches.match('./index.html'))
     );
@@ -47,8 +50,10 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((hit) =>
       hit || fetch(e.request).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        if (res.ok) {                                 // never cache a failed asset fetch
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        }
         return res;
       })
     )
