@@ -473,14 +473,14 @@
       <div class="seclabel">Timer cues</div>
       <div class="setcard">
         <div class="togg">
-          <span>Get-ready 3·2·1 lead-in</span>
+          <span>Get-ready 10-second lead-in</span>
           <button class="tsw" id="leadInToggle" role="switch" aria-checked="true" aria-label="Toggle get-ready lead-in"></button>
         </div>
         <div class="togg">
           <span>Phase chimes</span>
           <button class="tsw" id="phaseCueToggle" role="switch" aria-checked="true" aria-label="Toggle phase chimes"></button>
         </div>
-        <p style="margin-top:16px;">The <b>lead-in</b> counts you in with 3·2·1 so you can step into the cold before timing starts — tap the dial to skip it. <b>Phase chimes</b> play a soft, rising tone as you cross into the yellow and green thirds, so you can track your progress by ear. Preview both with the test timer above.</p>
+        <p style="margin-top:16px;">The <b>lead-in</b> gives you a <b>10-second</b> countdown to set the water to cold before timing starts — the ring empties as it counts, with soft beeps for the final 3. Tap the dial to skip it. <b>Phase chimes</b> play a soft, rising tone as you cross into the yellow and green thirds, so you can track your progress by ear. Preview both with the test timer above.</p>
       </div>
 
       <div class="seclabel">How this works</div>
@@ -488,7 +488,7 @@
         <summary>Getting started <span class="chev">›</span></summary>
         <div class="accbody">
           <p><b>Pick a goal</b> with the 3 / 6 / 9-minute presets, or nudge it ±1 minute with the − / + buttons.</p>
-          <p><b>Tap Start</b> and a quick <b>3·2·1 lead-in</b> counts you in, giving you a moment to step into the cold before timing begins. Tap the dial to skip it, or switch it off under <b>Settings → Timer cues</b>.</p>
+          <p><b>Tap Start</b> and a <b>10-second lead-in</b> counts you in, giving you time to set the water to cold and step in before timing begins. Tap the dial to skip it, or switch it off under <b>Settings → Timer cues</b>.</p>
           <p>Let the ring count you down. Tap <b>Stop</b> anytime to end and save the session.</p>
         </div>
       </details>
@@ -688,17 +688,17 @@
     });
   }
 
-  const LEAD = 3;                                   // get-ready 3·2·1 seconds
+  const LEAD = 10;                                  // get-ready seconds (time to set the water to min)
   function tick(){
     if(phase === 'ready'){
       const t = (Date.now() - readyStart) / 1000;
-      if(t < LEAD){                                 // 3 · 2 · 1
+      if(t < LEAD){                                 // 10 … 1, ring emptying; soft beeps only for the last 3
         const n = Math.ceil(LEAD - t);
-        if(n !== lastLeadNum){ lastLeadNum = n; beep(); }
+        if(n !== lastLeadNum){ lastLeadNum = n; if(n <= 3) beep(); }
         $('time').textContent = n;
         $('time').style.color = 'var(--ice)';
         $('phaseLabel').textContent = 'get ready';
-        setRing(1, 'var(--ice)');
+        setRing((LEAD - t) / LEAD, 'var(--ice)');
       } else if(t < LEAD + 0.55){                   // brief "GO"
         if(lastLeadNum !== 0){ lastLeadNum = 0; goBeep(); }
         $('time').textContent = 'GO';
@@ -768,7 +768,7 @@
     phase = 'countdown'; startAt = Date.now(); lastBeepSec = null; lastCueIdx = 0;
     $('tagline').textContent = 'Breathe slow. You’ve got this.';
   }
-  function skipLeadIn(){                             // tap the dial to skip the 3·2·1
+  function skipLeadIn(){                             // tap the dial to skip the lead-in
     if(phase !== 'ready') return;
     goBeep(); beginCountdown();
   }
@@ -1196,6 +1196,9 @@
 
   /* ============ settings: version log ============ */
   const VERSIONLOG = [
+    { v: 'v1.16', date: '2026-08-16 14:30', title: 'Longer 10-second lead-in',
+      what: 'The get-ready lead-in is now 10 seconds instead of 3, giving you time to turn the shower to its coldest before timing starts. The ring empties as it counts down, with soft beeps only for the final 3 seconds and a “GO”. Tap the dial to skip it any time.',
+      benefit: 'No rushing the tap — you can get the water properly cold and be in position before the clock begins.' },
     { v: 'v1.15', date: '2026-08-16 14:00', title: 'Never gets stuck on an error page',
       what: 'The app used to save whatever it downloaded — including an error page — so if the web address ever hiccuped or moved, it could get stuck showing that error even after things recovered. It now only keeps a page when it loads successfully, and otherwise falls back to the last good copy it already had.',
       benefit: 'A temporary server glitch or a moved address can no longer leave the app dead on a blank error screen — it keeps working from the copy it already trusts.' },
